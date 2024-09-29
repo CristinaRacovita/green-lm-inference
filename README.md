@@ -2,4 +2,4 @@
 
 Setup:
 - Install weaviate locally: `docker run -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.26.5`
-- Install milvus locally: `docker run -it milvusdb/milvus:v2.3.0 milvus run standalone`
+- Install qdrant locally: `docker pull qdrant/qdrant` + `docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant`
