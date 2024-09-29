@@ -1,30 +1,11 @@
 import weaviate
-import json
-import os
 from weaviate.classes.config import Property, DataType
 from weaviate.classes.query import Filter
+from read_files import read_from_directory
 
 
 def weaviate_connect():
     return weaviate.connect_to_local()
-
-
-def read_json_file(file_path):
-    with open(file_path, "r") as json_file:
-        data = json.load(json_file)
-
-    return data
-
-
-def read_from_directory(directory_path):
-    json_data = []
-    collection_names = []
-
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
-        collection_names.append(file_path.split("\\")[1].replace(".json", ""))
-        json_data.append(read_json_file(file_path))
-    return json_data, collection_names
 
 
 def create_collections(collection_names, weaviate_client):
@@ -47,6 +28,10 @@ def add_objects_for_collection(collection_name, weaviate_client, data):
             {"text": element["text"], "embedding": element["embedding"]}
         )
 
+def get_all_data_from_collection(collection_name, client):
+    collection = client.collections.get(collection_name)
+    for item in collection.iterator():
+        print(item.uuid, item.properties)
 
 if __name__ == "__main__":
     client = weaviate_connect()
@@ -58,6 +43,7 @@ if __name__ == "__main__":
             create_collections(collection_names, client)
             for index, collection_name in enumerate(collection_names):
                 add_objects_for_collection(collection_name, client, json_data[index])
+                # get_all_data_from_collection(collection_name, client)
         except Exception as error:
             print(error)
         finally:
