@@ -38,30 +38,57 @@ def get_model_and_tokenizer(model_name, device):
     return model, tokenizer
 
 
+def average_pool(last_hidden_states, attention_mask):
+    last_hidden = last_hidden_states.masked_fill(~attention_mask[..., None].bool(), 0.0)
+    return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+
+
 def embed_corpus(dataset_name, model_name, model, tokenizer, device, batch_size):
+    # set the maximum input length
+    if "v1.5" in model_name:
+        max_length = 8192
+    else:
+        max_length = 512
+
     # load the corpus
     corpus = load_data(dataset_name, "corpus", batch_size)
 
     corpus_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(corpus[:10]):
+    for texts in tqdm(corpus):
         # tokenize the input texts
         batch_dict = tokenizer(
-            texts, max_length=8192, padding=True, truncation=True, return_tensors="pt"
+            texts,
+            max_length=max_length,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
         ).to(device)
 
         # get embeddings
         outputs = model(**batch_dict)
-        embeddings = outputs.last_hidden_state[:, 0].cpu().detach().tolist()
 
-        # add each text with the corresponding embedding in a separate dictionary
+        if "v1.5" in model_name:
+            embeddings = outputs.last_hidden_state[:, 0]
+        else:
+            embeddings = average_pool(
+                outputs.last_hidden_state, batch_dict["attention_mask"]
+            )
+
+        # add each text with the corresponding embedding in a separate
+        detached_embeddings = embeddings.cpu().detach().tolist()
+
         corpus_embeddings.append(
-            [{"text": texts[i], "embedding": embeddings[i]} for i in range(batch_size)]
+            [
+                {"text": texts[i], "embedding": detached_embeddings[i]}
+                for i in range(batch_size)
+            ]
         )
 
         # free the memory
-        del batch_dict, outputs, embeddings
+        torch.cuda.empty_cache()
+        del batch_dict, outputs, embeddings, detached_embeddings
 
     # store the data
     with open(f"./data/embeddings/{model_name}_{dataset_name}.json", "w") as json_file:
@@ -81,10 +108,10 @@ def main(model_name, dataset_name, batch_size):
     # define available models and datasets
     model_names = [
         "Alibaba-NLP/gte-base-en-v1.5",
-        "Alibaba-NLP/gte-large-en-v1.5",
-        "Alibaba-NLP/gte-Qwen2-1.5B-instruct",
+        "thenlper/gte-base",
+        "thenlper/gte-small",
     ]
-    dataset_names = ["quora", "covid", "touche"]
+    dataset_names = ["nfcorpus", "scifact", "arguana"]
 
     # check if the model and dataset are available
     if model_name not in model_names or dataset_name not in dataset_names:
