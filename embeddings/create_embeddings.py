@@ -111,7 +111,7 @@ def main(model_name, dataset_name, batch_size):
         "thenlper/gte-base",
         "thenlper/gte-small",
     ]
-    dataset_names = ["nfcorpus", "scifact", "arguana"]
+    dataset_names = ["nfcorpus", "scifact", "arguana", "cqadupstack-webmasters"]
 
     # check if the model and dataset are available
     if model_name not in model_names or dataset_name not in dataset_names:
