@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 
 def load_data(dataset_name, subset_type, batch_size):
     # compose the file name
-    file_name = f"./data/datasets/{dataset_name}/{subset_type}.jsonl"
+    file_name = f"../data/datasets/{dataset_name}/{subset_type}.jsonl"
 
     # store the titles together with texts or the queries in a list
     with open(file_name, "r") as json_file:
@@ -107,7 +107,7 @@ def main(model_name, dataset_name, batch_size):
 
     # define available models and datasets
     model_names = [
-        "Alibaba-NLP/gte-base-en-v1.5",
+        "thenlper/gte-large",
         "thenlper/gte-base",
         "thenlper/gte-small",
     ]
