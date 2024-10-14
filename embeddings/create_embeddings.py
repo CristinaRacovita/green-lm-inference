@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 
 def load_data(dataset_name, subset_type, batch_size):
     # compose the file name
-    file_name = f"../data/datasets/{dataset_name}/{subset_type}.jsonl"
+    file_name = f"./data/datasets/{dataset_name}/{subset_type}.jsonl"
 
     # store the titles together with texts or the queries in a list
     with open(file_name, "r") as json_file:
@@ -56,7 +56,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, batch_size)
     corpus_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(corpus):
+    for texts in tqdm(corpus[:10]):
         # tokenize the input texts
         batch_dict = tokenizer(
             texts,
@@ -79,19 +79,18 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, batch_size)
         # add each text with the corresponding embedding in a separate
         detached_embeddings = embeddings.cpu().detach().tolist()
 
-        corpus_embeddings.append(
-            [
+        for i in range(batch_size):
+            corpus_embeddings.append(
                 {"text": texts[i], "embedding": detached_embeddings[i]}
-                for i in range(batch_size)
-            ]
-        )
+            )
 
         # free the memory
         torch.cuda.empty_cache()
         del batch_dict, outputs, embeddings, detached_embeddings
 
     # store the data
-    with open(f"./data/embeddings/{model_name}_{dataset_name}.json", "w") as json_file:
+    stored_model_name = model_name.replace("-", "_")
+    with open(f"./data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
         json.dump(corpus_embeddings, json_file, indent=4)
 
     # free the memory
