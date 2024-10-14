@@ -6,14 +6,15 @@ from pymilvus import (
 )
 from read_files import read_from_directory
 
+# similarity metric is set when searching 
 
-def create_collections(collection_names, milvus_client):
+def create_collections(collection_names, milvus_client, vector_size = 10):
     my_id = FieldSchema(name="id", dtype=DataType.INT64, is_primary=True)
     text = FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=1024)
     embedding = FieldSchema(
         name="embedding",
         dtype=DataType.FLOAT_VECTOR,
-        dim=10,
+        dim=vector_size,
     )
     schema = CollectionSchema(fields=[my_id, text, embedding], auto_id=True)
     for collection_name in collection_names:

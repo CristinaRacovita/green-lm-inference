@@ -2,13 +2,13 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from read_files import read_from_directory
 
-def create_collections(collection_names, q_client):
+def create_collections(collection_names, q_client, vector_size = 10):
     for collection_name in collection_names:
         if collection_exists(collection_name, q_client):
             q_client.delete_collection(collection_name=collection_name)
         q_client.create_collection(
             collection_name=collection_name,
-            vectors_config=VectorParams(size=10, distance=Distance.DOT),
+            vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
         )
 
 def collection_exists(collection_name, q_client):

@@ -3,6 +3,7 @@ from weaviate.classes.config import Property, DataType
 from weaviate.classes.query import Filter
 from read_files import read_from_directory
 
+# If not specified explicitly, the default distance metric in Weaviate is cosine
 
 def weaviate_connect():
     return weaviate.connect_to_local()
