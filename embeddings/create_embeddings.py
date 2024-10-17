@@ -56,7 +56,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, batch_size)
     corpus_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(corpus[:10]):
+    for texts in tqdm(corpus):
         # tokenize the input texts
         batch_dict = tokenizer(
             texts,
@@ -90,7 +90,9 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, batch_size)
 
     # store the data
     stored_model_name = model_name.replace("-", "_")
-    with open(f"./data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
+    with open(
+        f"./data/embeddings/{stored_model_name}_{dataset_name}.json", "w"
+    ) as json_file:
         json.dump(corpus_embeddings, json_file, indent=4)
 
     # free the memory
