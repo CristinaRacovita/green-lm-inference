@@ -9,7 +9,7 @@ def read_json_file(file_path):
     return data
 
 
-def read_from_directory(directory_path, file_name):
+def read_from_directory(directory_path, file_name = None):
     json_data = []
     collection_names = []
 
