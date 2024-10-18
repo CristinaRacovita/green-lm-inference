@@ -36,14 +36,6 @@ def add_objects_for_collection(collection_name, weaviate_client, data):
 
     collection = weaviate_client.collections.get(collection_name)
     collection.data.insert_many(data_objs)
-    # with collection.batch.dynamic() as batch:
-    #     for element in data:
-    #         batch.add_object(
-    #             properties={"text": element["text"]},
-    #             vector=element["embedding"]
-    #         )
-    # if len(collection.batch.failed_objects) > 0:
-    #     print(f"Failed to import {len(collection.batch.failed_objects)} objects")
 
 def get_all_data_from_collection(collection_name, client):
     collection = client.collections.get(collection_name)
