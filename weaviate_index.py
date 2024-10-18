@@ -44,7 +44,7 @@ if __name__ == "__main__":
             create_collections(collection_names, client)
             for index, collection_name in enumerate(collection_names):
                 add_objects_for_collection(collection_name, client, json_data[index])
-                # get_all_data_from_collection(collection_name, client)
+                get_all_data_from_collection(collection_name, client)
         except Exception as error:
             print(error)
         finally:
