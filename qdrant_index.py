@@ -1,5 +1,5 @@
 import sys
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from read_files import read_from_directory
 
@@ -46,6 +46,14 @@ def get_all_data_from_collection(collection_name, q_client):
     )
 
 
+def get_k_most_similar(embedding, q_client, collection_name, k):
+    return q_client.query_points(
+        collection_name=collection_name,
+        query=embedding,
+        limit=k,
+    )
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Please provide file that contains embeddings.")
@@ -61,6 +69,18 @@ if __name__ == "__main__":
         for index, collection_name in enumerate(collection_names):
             add_objects_for_collection(collection_name, client, json_data[index])
             # get_all_data_from_collection(collection_name, client)
+            print(get_k_most_similar([
+                        0.12,
+                        0.87,
+                        -0.44,
+                        0.66,
+                        -0.01,
+                        0.23,
+                        0.99,
+                        -0.78,
+                        0.11,
+                        0.34
+                    ], client, collection_name, 1))
     except Exception as error:
         print(error)
     finally:
