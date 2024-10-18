@@ -3,6 +3,7 @@ from pymilvus import (
     CollectionSchema,
     FieldSchema,
     DataType,
+    Collection
 )
 from read_files import read_from_directory
 
@@ -59,8 +60,7 @@ def get_all_data_from_collection(collection_name, milvus_client):
         partition_names=[PARTITION_NAME]
     )
     res = milvus_client.get_load_state(collection_name=collection_name)
-    print(res)
-  
+    print(res)  
     count = milvus_client.query(
         collection_name=collection_name,
         output_fields=["count(*)"]
@@ -68,7 +68,24 @@ def get_all_data_from_collection(collection_name, milvus_client):
     )
 
     print(count)
-               
+
+def get_k_most_similar(embedding, milvus_client, collection_name, k):
+    milvus_client.load_partitions(
+        collection_name=collection_name,
+        partition_names=[PARTITION_NAME]
+    )
+    res = milvus_client.get_load_state(collection_name=collection_name)
+    print(res)
+    search_params = {
+        "metric_type": "COSINE", 
+    }
+    results = milvus_client.search(
+        collection_name = collection_name,
+        data=[embedding], 
+        parsearch_paramsam=search_params,
+        limit=k,
+    )
+    print(results)
 
 if __name__ == "__main__":
     client = MilvusClient(uri="http://localhost:19530")
@@ -78,7 +95,19 @@ if __name__ == "__main__":
         create_collections(collection_names, client, json_data)
         for index, collection_name in enumerate(collection_names):
             add_objects_for_collection(collection_name, json_data[index], client)
-            get_all_data_from_collection(collection_name, client)
+            # get_all_data_from_collection(collection_name, client)
+            get_k_most_similar([
+                        0.12,
+                        0.87,
+                        -0.44,
+                        0.66,
+                        -0.01,
+                        0.23,
+                        0.99,
+                        -0.78,
+                        0.11,
+                        0.34
+                    ], client, collection_name, 1)
 
 
     except Exception as error:
