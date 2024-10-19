@@ -47,13 +47,16 @@ def get_all_data_from_collection(collection_name, client):
         print(item.uuid, item.properties, item.vector)
 
 
-def get_k_most_similar(weaviate_client, collection_name, embedding, k):
+def get_k_most_similar(embedding, weaviate_client, collection_name, k):
     collection = weaviate_client.collections.get(collection_name)
     response = collection.query.near_vector(
         near_vector=embedding, limit=k, return_metadata=MetadataQuery(certainty=True)
     )
-
-    print(response)
+    items = []
+    for query_response in response.objects:
+        items.append(query_response.properties["text"])
+    print(items)
+    return items
 
 
 if __name__ == "__main__":
@@ -68,9 +71,9 @@ if __name__ == "__main__":
                 add_objects_for_collection(collection_name, client, json_data[index])
                 # get_all_data_from_collection(collection_name, client)
                 get_k_most_similar(
+                    [0.12, 0.87, -0.44, 0.66, -0.01, 0.23, 0.99, -0.78, 0.11, 0.34],
                     client,
                     collection_name,
-                    [0.12, 0.87, -0.44, 0.66, -0.01, 0.23, 0.99, -0.78, 0.11, 0.34],
                     1,
                 )
         except Exception as error:

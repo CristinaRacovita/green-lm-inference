@@ -69,8 +69,6 @@ def get_k_most_similar(embedding, milvus_client, collection_name, k):
     milvus_client.load_partitions(
         collection_name=collection_name, partition_names=[PARTITION_NAME]
     )
-    res = milvus_client.get_load_state(collection_name=collection_name)
-    print(res)
     search_params = {
         "metric_type": "COSINE",
     }
@@ -80,7 +78,25 @@ def get_k_most_similar(embedding, milvus_client, collection_name, k):
         parsearch_paramsam=search_params,
         limit=k,
     )
-    print(results)
+    item_ids = get_ids(results)
+    text_items = get_item_texts(milvus_client, collection_name, item_ids)
+    print(text_items)
+    return text_items
+
+
+def get_item_texts(milvus_client, collection_name, item_ids):
+    items = milvus_client.get(collection_name=collection_name, ids=item_ids)
+    text_items = []
+    for item in items:
+        text_items.append(item["text"])
+    return text_items
+
+
+def get_ids(results):
+    item_ids = []
+    for query_response in results[0]:
+        item_ids.append(query_response["id"])
+    return item_ids
 
 
 if __name__ == "__main__":
@@ -96,7 +112,7 @@ if __name__ == "__main__":
                 [0.12, 0.87, -0.44, 0.66, -0.01, 0.23, 0.99, -0.78, 0.11, 0.34],
                 client,
                 collection_name,
-                1,
+                2,
             )
 
     except Exception as error:
