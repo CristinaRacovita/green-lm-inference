@@ -48,7 +48,31 @@ def average_pool(last_hidden_states, attention_mask):
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
 
-def embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_id, batch_size=1):
+def store_timestamps(timestamps_path, run_index, start_time, end_time):
+    new_experiment_data = pd.DataFrame(
+        {
+            "run_number": run_index,
+            "start_timestamp": start_time,
+            "end_timestamp": end_time,
+        },
+        index=[0],
+    )
+
+    # if previous info about the experiment has been saved, then append new info to it
+    if os.path.exists(timestamps_path):
+        existing_experiment_data = pd.read_csv(timestamps_path)
+        experiment_data = pd.concat([existing_experiment_data, new_experiment_data])
+
+    else:
+        experiment_data = new_experiment_data
+
+    # store the updated info data
+    experiment_data.to_csv(timestamps_path, index=None)
+
+
+def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, store_flag):
+    batch_size = 1
+
     # set the path to the results file
     stored_model_name = model_name.replace("-", "_")
     results_path = "./results/rq3_embedding_generation"
@@ -98,25 +122,9 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_
 
     # record the end date and time of embedding generation
     end_time = datetime.now()
-    new_experiment_data = pd.DataFrame(
-        {
-            "run_number": experiment_id,
-            "start_timestamp": start_time,
-            "end_timestamp": end_time,
-        },
-        index=[0],
-    )
 
-    # if previous info about the experiment has been saved, then append new info to it
-    if os.path.exists(timestamps_path):
-        existing_experiment_data = pd.read_csv(timestamps_path)
-        experiment_data = pd.concat([existing_experiment_data, new_experiment_data])
-
-    else:
-        experiment_data = new_experiment_data
-
-    # store the updated info data
-    experiment_data.to_csv(timestamps_path, index=None)
+    if store_flag:
+        store_timestamps(timestamps_path, run_index, start_time, end_time)
 
     # store the data
     with open(f"./data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
@@ -126,7 +134,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_
     del corpus, corpus_embeddings
 
 
-def main(model_name, dataset_name, experiment_id):
+def main(model_name, dataset_name, experiment_id, store_flag):
     # get the available device for running the embedding model on
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_id = torch.cuda.current_device()
@@ -142,16 +150,17 @@ def main(model_name, dataset_name, experiment_id):
         raise NameError("The model or the dataset is not available.")
 
     model, tokenizer = get_model_and_tokenizer(model_name, device)
-    embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_id)
+    embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_id, store_flag)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Please provide the model and dataset names with the experiment id.")
+    if len(sys.argv) != 5:
+        print("Please provide the model and dataset names with the run id and store flag.")
         sys.exit(1)
 
     model_name = sys.argv[1]
     dataset_name = sys.argv[2]
-    experiment_id = int(sys.argv[3])
+    run_index = int(sys.argv[3])
+    store_flag = sys.argv[4] == "True"
 
-    main(model_name, dataset_name, experiment_id)
+    main(model_name, dataset_name, run_index, store_flag)
