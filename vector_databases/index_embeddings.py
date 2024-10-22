@@ -45,9 +45,9 @@ def get_entries_number(vector_db_name, collection_name, client):
     print(f"Number of stored embeddings: {number_of_stored_embeddings}")
 
 
-def main(vector_db_name, dataset_name, run_index, store_flag):
+def main(vector_db_name, dataset_name, run_index, store_flag, results_directory):
     directory_path = "../data/embeddings"
-    results_path = "../results/rq1_indexing"
+    results_path = f"../results/{results_directory}"
 
     # load data and get the vector db client
     json_data, collection_names = read_from_directory(directory_path, dataset_name + ".json")
@@ -84,8 +84,8 @@ def main(vector_db_name, dataset_name, run_index, store_flag):
     client.close()
 
 
-if len(sys.argv) != 5:
-    print("Please provide the vector db name, embeddings filename, run id and store flag.")
+if len(sys.argv) != 6:
+    print("Please provide the db name, embeddings filename, run id, store flag and results dir.")
     sys.exit(1)
 
 
@@ -93,5 +93,6 @@ vector_db_name = sys.argv[1]
 dataset_name = sys.argv[2]
 run_index = int(sys.argv[3])
 store_flag = sys.argv[4] == "True"
+results_directory = sys.argv[5]
 
-main(vector_db_name, dataset_name, run_index, store_flag)
+main(vector_db_name, dataset_name, run_index, store_flag, results_directory)

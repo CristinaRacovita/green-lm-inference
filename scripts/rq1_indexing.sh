@@ -2,7 +2,7 @@
 
 # index 10 times each dataset of embeddings using Milvus DB
 
-# define arrays for the embedding datasets and run numbers
+# define arrays with the embedding datasets and run numbers
 embedding_datasets=("gte_base_arguana"
                     "gte_base_cqadupstack_webmasters"
                     "gte_base_nfcorpus"
@@ -20,6 +20,6 @@ for embedding_dataset in "${embedding_datasets[@]}"; do
     for run_number in "${run_numbers[@]}"; do
         echo "$embedding_dataset" "$run_number"
         # run the Python script with current parameters
-        python ../vector_databases/index_embeddings.py "milvus" "$embedding_dataset" "$run_number" "True"
+        python ../vector_databases/index_embeddings.py "milvus" "$embedding_dataset" "$run_number" "True" "rq1_indexing"
     done
 done

@@ -2,7 +2,7 @@
 
 # create embeddings for nfcorpus dataset 10 times with each embedding model
 
-# define arrays for model names and run number
+# define arrays with model names and run number
 model_names=("gte-large" "gte-base" "gte-small")
 run_numbers=($(seq 1 10))
 
