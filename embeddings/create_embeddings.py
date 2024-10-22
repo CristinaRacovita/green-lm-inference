@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore")
 
 def load_data(dataset_name, subset_type, batch_size):
     # compose the file name
-    file_name = f"./data/datasets/{dataset_name}/{subset_type}.jsonl"
+    file_name = f"../data/datasets/{dataset_name}/{subset_type}.jsonl"
 
     # store the titles together with texts or the queries in a list
     with open(file_name, "r") as json_file:
@@ -30,7 +30,7 @@ def load_data(dataset_name, subset_type, batch_size):
             for line in json_file
         ]
     # split the list in a list of sublists, each having 'batch_size' items
-    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
+    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)][:10]
 
     return batched_data
 
@@ -75,7 +75,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, 
 
     # set the path to the results file
     stored_model_name = model_name.replace("-", "_")
-    results_path = "./results/rq3_embedding_generation"
+    results_path = "../results/rq3_embedding_generation"
     timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{dataset_name}.csv"
 
     # set the maximum input length
@@ -127,7 +127,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, 
         store_timestamps(timestamps_path, run_index, start_time, end_time)
 
     # store the data
-    with open(f"./data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
+    with open(f"../data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
         json.dump(corpus_embeddings, json_file, indent=4)
 
     # free the memory
