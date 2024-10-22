@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# create embeddings for each dataset with each embedding model
+
 # define arrays for model and dataset names
 model_names=("gte-large" "gte-base" "gte-small")
 dataset_names=("nfcorpus" "arguana" "cqadupstack-webmasters")
@@ -10,6 +12,7 @@ for model in "${model_names[@]}"; do
     for dataset in "${dataset_names[@]}"; do
         echo "$model" "$dataset"
         # run the Python script with current parameters
-        python ../embeddings/create_embeddings.py "$model" "$dataset" "1" "False"
+        python ../embeddings/create_embeddings.py "$model" "$dataset" "corpus" "1" "False"
+        python ../embeddings/create_embeddings.py "$model" "$dataset" "queries" "1" "False"
     done
 done

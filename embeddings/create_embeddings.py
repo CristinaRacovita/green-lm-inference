@@ -1,6 +1,6 @@
 """
-This script creates embeddings with a selected model for each text from a corpus and stores the 
-results in a JSON file, where each entry contains the text and the corresponding embeddings.
+This script creates embeddings with a model for each text from a corpus or set of queries and stores
+the results in a JSON file, where each entry contains the text and the corresponding embedding.
 """
 
 import os
@@ -70,12 +70,13 @@ def store_timestamps(timestamps_path, run_index, start_time, end_time):
     experiment_data.to_csv(timestamps_path, index=None)
 
 
-def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, store_flag):
+def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, store_flag):
     batch_size = 1
+    dataset_name, dataset_component = chosen_dataset
 
     # set the path to the results file
     stored_model_name = model_name.replace("-", "_")
-    results_path = "../results/rq3_embedding_generation"
+    results_path = "../results/rq3"
     timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{dataset_name}.csv"
 
     # set the maximum input length
@@ -84,15 +85,15 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, 
     else:
         max_length = 512
 
-    # load the corpus
-    corpus = load_data(dataset_name, "corpus", batch_size)
+    # load the data
+    data = load_data(dataset_name, dataset_component, batch_size)
 
     # record the start date and time of embedding generation
     start_time = datetime.now()
-    corpus_embeddings = []
+    data_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(corpus):
+    for texts in tqdm(data):
         # tokenize the input texts
         batch_dict = tokenizer(
             texts,
@@ -114,7 +115,7 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, 
         detached_embeddings = embeddings.cpu().detach().tolist()
 
         for i in range(batch_size):
-            corpus_embeddings.append({"text": texts[i], "embedding": detached_embeddings[i]})
+            data_embeddings.append({"text": texts[i], "embedding": detached_embeddings[i]})
 
         # free the memory
         torch.cuda.empty_cache()
@@ -127,14 +128,21 @@ def embed_corpus(dataset_name, model_name, model, tokenizer, device, run_index, 
         store_timestamps(timestamps_path, run_index, start_time, end_time)
 
     # store the data
-    with open(f"../data/embeddings/{stored_model_name}_{dataset_name}.json", "w") as json_file:
-        json.dump(corpus_embeddings, json_file, indent=4)
+    embeddings_file_name = f"../data/embeddings/{stored_model_name}_{dataset_name}"
+
+    if dataset_component == "queries":
+        embeddings_file_name += "_queries.json"
+    else:
+        embeddings_file_name += ".json"
+
+    with open(embeddings_file_name, "w") as json_file:
+        json.dump(data_embeddings, json_file, indent=4)
 
     # free the memory
-    del corpus, corpus_embeddings
+    del data, data_embeddings
 
 
-def main(model_name, dataset_name, experiment_id, store_flag):
+def main(model_name, dataset_name, dataset_component, run_index, store_flag):
     # get the available device for running the embedding model on
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_id = torch.cuda.current_device()
@@ -150,17 +158,19 @@ def main(model_name, dataset_name, experiment_id, store_flag):
         raise NameError("The model or the dataset is not available.")
 
     model, tokenizer = get_model_and_tokenizer(model_name, device)
-    embed_corpus(dataset_name, model_name, model, tokenizer, device, experiment_id, store_flag)
+    dataset_info = [dataset_name, dataset_component]
+    embed_data(dataset_info, model_name, model, tokenizer, device, run_index, store_flag)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Please provide the model and dataset names with the run id and store flag.")
+    if len(sys.argv) != 6:
+        print("Please provide the model, dataset name, dataset component, run id and store flag.")
         sys.exit(1)
 
     model_name = sys.argv[1]
     dataset_name = sys.argv[2]
-    run_index = int(sys.argv[3])
-    store_flag = sys.argv[4] == "True"
+    dataset_component = sys.argv[3]
+    run_index = int(sys.argv[4])
+    store_flag = sys.argv[5] == "True"
 
-    main(model_name, dataset_name, run_index, store_flag)
+    main(model_name, dataset_name, dataset_component, run_index, store_flag)

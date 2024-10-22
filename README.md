@@ -19,4 +19,4 @@ To monitor the used resources, before running any experiment, the HWiNFO logging
 Create embeddings for each dataset with each embedding model: `create_all_embeddings.sh`
 
 #### RQ3
-Benchmark the embedding generation which creates embeddings for nfcorpus dataset 10 times with each embedding model: `run_embedding_generation.sh`
+Benchmark the embedding generation which creates embeddings for nfcorpus dataset 10 times with each embedding model: `rq3.sh`
