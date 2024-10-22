@@ -3,16 +3,18 @@ This script creates embeddings with a model for each text from a corpus or set o
 the results in a JSON file, where each entry contains the text and the corresponding embedding.
 """
 
-import os
 import sys
 import json
 import warnings
 from datetime import datetime
 
+sys.path.append("../")
+
 import torch
-import pandas as pd
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
+
+from utils import store_timestamps
 
 warnings.filterwarnings("ignore")
 
@@ -48,36 +50,15 @@ def average_pool(last_hidden_states, attention_mask):
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
 
-def store_timestamps(timestamps_path, run_index, start_time, end_time):
-    new_experiment_data = pd.DataFrame(
-        {
-            "run_number": run_index,
-            "start_timestamp": start_time,
-            "end_timestamp": end_time,
-        },
-        index=[0],
-    )
-
-    # if previous info about the experiment has been saved, then append new info to it
-    if os.path.exists(timestamps_path):
-        existing_experiment_data = pd.read_csv(timestamps_path)
-        experiment_data = pd.concat([existing_experiment_data, new_experiment_data])
-
-    else:
-        experiment_data = new_experiment_data
-
-    # store the updated info data
-    experiment_data.to_csv(timestamps_path, index=None)
-
-
 def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, store_flag):
     batch_size = 1
     dataset_name, dataset_component = chosen_dataset
 
     # set the path to the results file
     stored_model_name = model_name.replace("-", "_")
+    stored_dataset_name = dataset_name.replace("-", "_")
     results_path = "../results/rq3"
-    timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{dataset_name}.csv"
+    timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{stored_dataset_name}.csv"
 
     # set the maximum input length
     if "v1.5" in model_name:
@@ -128,7 +109,7 @@ def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, 
         store_timestamps(timestamps_path, run_index, start_time, end_time)
 
     # store the data
-    embeddings_file_name = f"../data/embeddings/{stored_model_name}_{dataset_name}"
+    embeddings_file_name = f"../data/embeddings/{stored_model_name}_{stored_dataset_name}"
 
     if dataset_component == "queries":
         embeddings_file_name += "_queries.json"

@@ -1,19 +1,27 @@
+import sys
+
+sys.path.append("../")
+
 import weaviate
 from weaviate.classes.config import Property, DataType, Configure
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.classes.data import DataObject
-from read_files import read_from_directory
+from utils import read_from_directory
 
 # If not specified explicitly, the default distance metric in Weaviate is cosine
 
 
-def weaviate_connect():
+def connnect():
     return weaviate.connect_to_local()
 
 
 def create_collections(collection_names, weaviate_client):
     for collection_name in collection_names:
-        if not weaviate_client.collections.exists(collection_name):
+        if weaviate_client.collections.exists(collection_name):
+            collection = weaviate_client.collections.get(collection_name)
+            collection.data.delete_many(where=Filter.by_property("text").like("*"))
+
+        else:
             weaviate_client.collections.create(
                 collection_name,
                 properties=[
@@ -24,8 +32,6 @@ def create_collections(collection_names, weaviate_client):
 
 
 def add_objects_for_collection(collection_name, weaviate_client, data):
-    collection = weaviate_client.collections.get(collection_name)
-    collection.data.delete_many(where=Filter.by_property("text").like("*"))
     data_objs = []
     for d in data:
         data_objs.append(
@@ -59,23 +65,35 @@ def get_k_most_similar(embedding, weaviate_client, collection_name, k):
     return items
 
 
+def count_collection_entries(collection_name, client):
+    collection = client.collections.get(collection_name)
+    counter = 0
+
+    for _ in collection.iterator():
+        counter += 1
+
+    return counter
+
+
 if __name__ == "__main__":
-    client = weaviate_connect()
-    DIRECTORY_PATH = "./data/embeddings"
+    if len(sys.argv) != 2:
+        print("Please provide file that contains embeddings.")
+        sys.exit(1)
+
+    file_name = sys.argv[1]
+
+    client = connnect()
+    DIRECTORY_PATH = "../data/embeddings"
 
     if client.is_ready():
         try:
-            json_data, collection_names = read_from_directory(DIRECTORY_PATH)
+            json_data, collection_names = read_from_directory(DIRECTORY_PATH, file_name)
             create_collections(collection_names, client)
             for index, collection_name in enumerate(collection_names):
+                embedding_size = len(json_data[index][0]["embedding"])
                 add_objects_for_collection(collection_name, client, json_data[index])
                 # get_all_data_from_collection(collection_name, client)
-                get_k_most_similar(
-                    [0.12, 0.87, -0.44, 0.66, -0.01, 0.23, 0.99, -0.78, 0.11, 0.34],
-                    client,
-                    collection_name,
-                    1,
-                )
+                get_k_most_similar([0] * embedding_size, client, collection_name, 2)
         except Exception as error:
             print(error)
         finally:

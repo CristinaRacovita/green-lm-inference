@@ -1,7 +1,14 @@
 import sys
+
+sys.path.append("../")
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-from read_files import read_from_directory
+from utils import read_from_directory
+
+
+def connnect():
+    return QdrantClient(url="http://localhost:6333")
 
 
 def create_collections(collection_names, q_client, json_data):
@@ -59,6 +66,16 @@ def get_k_most_similar(embedding, q_client, collection_name, k):
     return items
 
 
+def count_collection_entries(collection_name, client):
+    collection_data = client.scroll(
+        collection_name=collection_name,
+        with_payload=True,
+        with_vectors=True,
+    )
+
+    return len(collection_data[0])
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Please provide file that contains embeddings.")
@@ -66,22 +83,16 @@ if __name__ == "__main__":
 
     file_name = sys.argv[1]
 
-    client = QdrantClient(url="http://localhost:6333")
-    DIRECTORY_PATH = "./data/embeddings"
+    client = connnect()
+    DIRECTORY_PATH = "../data/embeddings"
     try:
         json_data, collection_names = read_from_directory(DIRECTORY_PATH, file_name)
         create_collections(collection_names, client, json_data)
         for index, collection_name in enumerate(collection_names):
+            embedding_size = len(json_data[index][0]["embedding"])
             add_objects_for_collection(collection_name, client, json_data[index])
             # get_all_data_from_collection(collection_name, client)
-
-            get_k_most_similar(
-                [0.12, 0.87, -0.44, 0.66, -0.01, 0.23, 0.99, -0.78, 0.11, 0.34],
-                client,
-                collection_name,
-                1,
-            )
-
+            get_k_most_similar([0] * embedding_size, client, collection_name, 2)
     except Exception as error:
         print(error)
     finally:
