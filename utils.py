@@ -62,3 +62,13 @@ def load_query_embeddings(file_path, queries_number):
 
     # get the first queries_number embedded queries
     return queries[:queries_number]
+
+
+def load_query_text(file_path, queries_number):
+    random.seed(42)
+    with open(file_path, "r") as json_file:
+        queries = [json.loads(line)["text"] for line in json_file]
+
+    random.shuffle(queries)
+
+    return queries[:queries_number]

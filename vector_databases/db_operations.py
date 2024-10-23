@@ -84,6 +84,21 @@ def index_data(vector_db_name, dataset_name, run_index):
     return start_time, end_time
 
 
+def get_prompt_docs(client, dataset_name, k, embedding):
+    collection_name = dataset_name.replace(".json", "") + "_1"
+
+    if vector_db_name == "milvus":
+        get_k_most_similar = milvus_get_k_most_similar
+        client.load_collection(collection_name)
+    elif vector_db_name == "qdrant":
+        get_k_most_similar = qdrant_get_k_most_similar
+    else:
+        get_k_most_similar = weaviate_get_k_most_similar
+    
+    similar_texts = get_k_most_similar(embedding, client, collection_name, k)
+    return similar_texts
+
+
 def query_db(vector_db_name, dataset_name, number_of_queries=500, top_k_entries=10):
     # load queries and get the vector db client
     data_path = f"{DIRECTORY_PATH}/{dataset_name}_queries.json"
