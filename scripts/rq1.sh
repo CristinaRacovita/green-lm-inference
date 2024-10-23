@@ -1,6 +1,16 @@
 #!/bin/bash
 
-# index 10 times each dataset of embeddings using Milvus DB
+# index or query 10 times each dataset of embeddings using Milvus DB
+
+# get the operation type (index or query) from the command line
+operation_type=$1
+
+# set the results path
+if [ "$operation_type" = "index" ]; then
+    results_path="rq1_indexing"
+elif [ "$operation_type" = "query" ]; then
+    results_path="rq1_querying"
+fi
 
 # define arrays with the embedding datasets and run numbers
 embedding_datasets=("gte_base_arguana"
@@ -20,6 +30,6 @@ for embedding_dataset in "${embedding_datasets[@]}"; do
     for run_number in "${run_numbers[@]}"; do
         echo "$embedding_dataset" "$run_number"
         # run the Python script with current parameters
-        python ../vector_databases/index_embeddings.py "milvus" "$embedding_dataset" "$run_number" "True" "rq1_indexing"
+        python ../vector_databases/db_operations.py "$operation_type" "milvus" "$embedding_dataset" "$run_number" "True" "$results_path"
     done
 done

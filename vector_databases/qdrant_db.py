@@ -62,7 +62,7 @@ def get_k_most_similar(embedding, q_client, collection_name, k):
     )
     for query_response in response.points:
         items.append(query_response.payload["text"])
-    print(items)
+
     return items
 
 

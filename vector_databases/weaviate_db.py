@@ -61,7 +61,7 @@ def get_k_most_similar(embedding, weaviate_client, collection_name, k):
     items = []
     for query_response in response.objects:
         items.append(query_response.properties["text"])
-    print(items)
+
     return items
 
 

@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 import pandas as pd
 
@@ -48,3 +49,16 @@ def store_timestamps(timestamps_path, run_index, start_time, end_time):
 
     # store the updated info data
     experiment_data.to_csv(timestamps_path, index=None)
+
+
+def load_query_embeddings(file_path, queries_number):
+    # set the seed to get the same queries every time
+    random.seed(42)
+
+    # get the embeddings of queries in a list and shuffle the list
+    query_data = read_json_file(file_path)
+    queries = [query["embedding"] for query in query_data]
+    random.shuffle(queries)
+
+    # get the first queries_number embedded queries
+    return queries[:queries_number]
