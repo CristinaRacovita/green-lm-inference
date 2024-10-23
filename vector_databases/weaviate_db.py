@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 embedding_size = len(json_data[index][0]["embedding"])
                 add_objects_for_collection(collection_name, client, json_data[index])
                 # get_all_data_from_collection(collection_name, client)
-                get_k_most_similar([0] * embedding_size, client, collection_name, 2)
+                print(get_k_most_similar([0] * embedding_size, client, collection_name, 2))
         except Exception as error:
             print(error)
         finally:

@@ -41,16 +41,10 @@ def create_collections(collection_names, milvus_client, json_data):
             }
         ]
 
-        client.create_index(collection_name=collection_name, index_params=index_params)
-
-        # client.create_partition(collection_name=collection_name, partition_name=PARTITION_NAME)
-
-        client.release_collection(collection_name=collection_name)
+        milvus_client.create_index(collection_name=collection_name, index_params=index_params)
 
 
 def add_objects_for_collection(collection_name, input_data, client):
-    client.load_collection(collection_name=collection_name, timeout=1)
-    print("here")
     data = map(
         lambda el: {"text": el["text"], "embedding": el["embedding"]},
         input_data,
@@ -63,7 +57,6 @@ def add_objects_for_collection(collection_name, input_data, client):
 
 def get_all_data_from_collection(collection_name, milvus_client):
     milvus_client.load_coleection(collection_name=collection_name)
-    res = milvus_client.get_load_state(collection_name=collection_name)
     count = milvus_client.query(
         collection_name=collection_name,
         output_fields=["count(*)"],
@@ -74,9 +67,10 @@ def get_all_data_from_collection(collection_name, milvus_client):
     print(count)
 
 
-def get_k_most_similar(embedding, milvus_client, collection_name, k):
-    milvus_client.load_collection(collection_name=collection_name)
-    print(milvus_client.get_load_state(collection_name=collection_name))
+def get_k_most_similar(embedding, milvus_client, collection_name, k, load_collection=False):
+    if load_collection:
+        milvus_client.load_collection(collection_name=collection_name)
+
     search_params = {
         "metric_type": "COSINE",
     }
@@ -89,7 +83,8 @@ def get_k_most_similar(embedding, milvus_client, collection_name, k):
     item_ids = get_ids(results)
     text_items = get_item_texts(milvus_client, collection_name, item_ids)
 
-    milvus_client.release_collection(collection_name=collection_name)
+    if load_collection:
+        milvus_client.release_collection(collection_name=collection_name)
 
     return text_items
 
@@ -134,7 +129,6 @@ if __name__ == "__main__":
     print("Available collections:")
     for collection_name in client.list_collections():
         print(collection_name)
-        client.drop_collection(collection_name)
 
     DIRECTORY_PATH = "../data/embeddings"
 
@@ -145,7 +139,7 @@ if __name__ == "__main__":
             embedding_size = len(json_data[index][0]["embedding"])
             add_objects_for_collection(collection_name, json_data[index], client)
             # get_all_data_from_collection(collection_name, client)
-            get_k_most_similar([0.0] * embedding_size, client, collection_name, 2)
+            print(get_k_most_similar([0.0] * embedding_size, client, collection_name, 2, True))
     except Exception as error:
         print(error)
     finally:
