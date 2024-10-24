@@ -3,7 +3,7 @@
 # create embeddings for each dataset with each embedding model
 
 # define arrays for model and dataset names
-model_names=("gte-large" "gte-base" "gte-small")
+model_names=("gte-small" "gte-base" "gte-large")
 dataset_names=("nfcorpus" "arguana" "cqadupstack-webmasters")
 
 # loop through each model name

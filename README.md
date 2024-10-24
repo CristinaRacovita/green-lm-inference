@@ -25,3 +25,6 @@ Index or query 10 times the cqadupstack-webmasters dataset vectorized with gte-b
 
 #### RQ3
 Benchmark the embedding generation which creates embeddings for nfcorpus dataset 10 times with each embedding model: `rq3.sh`.
+
+#### RQ4 & RQ5
+Run the RAG system 10 times using the language model of choice, gte-base embedding model and various number of retrieved texts included from the arguana dataset in the prompt (1 up to 15): `rq4_rq5.sh qwen2.5:0.5b` or `rq4_rq5.sh gemma2:2b`.
