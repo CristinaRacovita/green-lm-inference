@@ -50,7 +50,7 @@ def average_pool(last_hidden_states, attention_mask):
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
 
-def create_embedding(device, model, tokenizer, data, batch_size, verbose=True):
+def create_embedding(device, model_name, model, tokenizer, data, batch_size, verbose=True):
     # set the maximum input length
     if "v1.5" in model_name:
         max_length = 8192
@@ -107,7 +107,7 @@ def embed_dataset(chosen_dataset, model_name, model, tokenizer, device, run_inde
     # record the start date and time of embedding generation
     start_time = datetime.now()
 
-    data_embeddings = create_embedding(device, model, tokenizer, data, batch_size)
+    data_embeddings = create_embedding(device, model_name, model, tokenizer, data, batch_size)
 
     # record the end date and time of embedding generation
     end_time = datetime.now()
