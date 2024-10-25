@@ -48,6 +48,13 @@ def setup_rag(db_name, dataset_name, embedding_model_name, language_model_name, 
     return query_texts, client, device, embedding_model, tokenizer
 
 
+def get_length(text, tokenizer, device):
+    tokenized_text = tokenizer(
+        text, max_length=512, padding=True, truncation=True, return_tensors="pt"
+    ).to(device)
+    return tokenized_text["input_ids"].size()[1] - 2
+
+
 def create_prompt(similar_retrieved_texts, query_text):
     prompt = """Write a high-quality answer for the given question using only the provided search results (some of which might be irrelevant).\n\n"""
 
@@ -66,6 +73,8 @@ def ask_query(models, query_texts, vector_db_name, device, k):
     timestamps["embedding_end_time"] = []
     timestamps["retrieval_end_time"] = []
     timestamps["ask_model_end_time"] = []
+    timestamps["prompt_length"] = []
+    timestamps["answer_tokens_no"] = []
 
     for query_text in tqdm(query_texts):
         embedding_start_time = datetime.now()
@@ -80,14 +89,19 @@ def ask_query(models, query_texts, vector_db_name, device, k):
         retrieval_end_time = datetime.now()
         prompt = create_prompt(similar_retrieved_texts, query_text)
 
-        ask_model(language_model_name, prompt)
+        answer = ask_model(language_model_name, prompt)["message"]["content"]
 
         ask_model_end_time = datetime.now()
+
+        prompt_length = get_length(prompt, tokenizer, device)
+        answer_length = get_length(answer, tokenizer, device)
 
         timestamps["embedding_start_time"].append(embedding_start_time)
         timestamps["embedding_end_time"].append(embedding_end_time)
         timestamps["retrieval_end_time"].append(retrieval_end_time)
         timestamps["ask_model_end_time"].append(ask_model_end_time)
+        timestamps["prompt_length"].append(prompt_length)
+        timestamps["answer_tokens_no"].append(answer_length)
 
     return timestamps
 

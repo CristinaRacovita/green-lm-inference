@@ -32,7 +32,7 @@ def load_data(dataset_name, subset_type, batch_size):
             for line in json_file
         ]
     # split the list in a list of sublists, each having 'batch_size' items
-    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)][:10]
+    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
 
     return batched_data
 
