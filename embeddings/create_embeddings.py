@@ -32,7 +32,7 @@ def load_data(dataset_name, subset_type, batch_size):
             for line in json_file
         ]
     # split the list in a list of sublists, each having 'batch_size' items
-    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)][:10]
+    batched_data = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
 
     return batched_data
 
@@ -50,31 +50,17 @@ def average_pool(last_hidden_states, attention_mask):
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
 
-def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, store_flag):
-    batch_size = 1
-    dataset_name, dataset_component = chosen_dataset
-
-    # set the path to the results file
-    stored_model_name = model_name.replace("-", "_")
-    stored_dataset_name = dataset_name.replace("-", "_")
-    results_path = "../results/rq3"
-    timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{stored_dataset_name}.csv"
-
+def create_embedding(device, model_name, model, tokenizer, data, batch_size, verbose=True):
     # set the maximum input length
     if "v1.5" in model_name:
         max_length = 8192
     else:
         max_length = 512
 
-    # load the data
-    data = load_data(dataset_name, dataset_component, batch_size)
-
-    # record the start date and time of embedding generation
-    start_time = datetime.now()
     data_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(data):
+    for texts in tqdm(data, disable=not verbose):
         # tokenize the input texts
         batch_dict = tokenizer(
             texts,
@@ -102,6 +88,27 @@ def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, 
         torch.cuda.empty_cache()
         del batch_dict, outputs, embeddings, detached_embeddings
 
+    return data_embeddings
+
+
+def embed_dataset(chosen_dataset, model_name, model, tokenizer, device, run_index, store_flag):
+    batch_size = 1
+    dataset_name, dataset_component = chosen_dataset
+
+    # set the path to the results file
+    stored_model_name = model_name.replace("-", "_")
+    stored_dataset_name = dataset_name.replace("-", "_")
+    results_path = "../results/rq3"
+    timestamps_path = f"{results_path}/timestamps_{stored_model_name}_{stored_dataset_name}.csv"
+
+    # load the data
+    data = load_data(dataset_name, dataset_component, batch_size)
+
+    # record the start date and time of embedding generation
+    start_time = datetime.now()
+
+    data_embeddings = create_embedding(device, model_name, model, tokenizer, data, batch_size)
+
     # record the end date and time of embedding generation
     end_time = datetime.now()
 
@@ -123,12 +130,19 @@ def embed_data(chosen_dataset, model_name, model, tokenizer, device, run_index, 
     del data, data_embeddings
 
 
-def main(model_name, dataset_name, dataset_component, run_index, store_flag):
+def get_device():
     # get the available device for running the embedding model on
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_id = torch.cuda.current_device()
     device_name = torch.cuda.get_device_name(0)
     print(f"Current device: {device_id} ({device}) -> {device_name}")
+
+    return device
+
+
+def main(model_name, dataset_name, dataset_component, run_index, store_flag):
+    # get the available device for running the embedding model on
+    device = get_device()
 
     # define available models and datasets
     model_names = ["gte-large", "gte-base", "gte-small"]
@@ -140,7 +154,7 @@ def main(model_name, dataset_name, dataset_component, run_index, store_flag):
 
     model, tokenizer = get_model_and_tokenizer(model_name, device)
     dataset_info = [dataset_name, dataset_component]
-    embed_data(dataset_info, model_name, model, tokenizer, device, run_index, store_flag)
+    embed_dataset(dataset_info, model_name, model, tokenizer, device, run_index, store_flag)
 
 
 if __name__ == "__main__":
