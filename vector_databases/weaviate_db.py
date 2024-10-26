@@ -3,7 +3,6 @@ import sys
 sys.path.append("../")
 
 import weaviate
-from tqdm import tqdm
 from weaviate.classes.config import Property, DataType, Configure
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.classes.data import DataObject
@@ -34,7 +33,7 @@ def create_collections(collection_names, weaviate_client):
 
 def add_objects_for_collection(collection_name, weaviate_client, data):
     data_objs = []
-    for d in tqdm(data):
+    for d in data:
         data_objs.append(
             DataObject(
                 properties={

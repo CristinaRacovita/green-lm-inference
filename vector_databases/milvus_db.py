@@ -2,7 +2,6 @@ import sys
 
 sys.path.append("../")
 
-from tqdm import tqdm
 from pymilvus import MilvusClient, CollectionSchema, FieldSchema, DataType
 from utils import read_from_directory
 
@@ -53,7 +52,7 @@ def add_objects_for_collection(collection_name, input_data, client):
         )
     )
 
-    for data_row in tqdm(data):
+    for data_row in data:
         client.insert(
             collection_name=collection_name, partition_name=PARTITION_NAME, data=[data_row]
         )

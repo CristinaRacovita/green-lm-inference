@@ -2,7 +2,6 @@ import sys
 
 sys.path.append("../")
 
-from tqdm import tqdm
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from utils import read_from_directory
@@ -30,7 +29,7 @@ def collection_exists(collection_name, q_client):
 
 
 def add_objects_for_collection(collection_name, q_client, data):
-    for index, element in enumerate(tqdm(data)):
+    for index, element in enumerate(data):
         operation_info = q_client.upsert(
             collection_name=collection_name,
             wait=True,

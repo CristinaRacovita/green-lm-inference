@@ -22,7 +22,12 @@ embedding_datasets=("gte_base_arguana"
                     "gte_small_arguana"
                     "gte_small_cqadupstack_webmasters"
                     "gte_small_nfcorpus")
+embedding_datasets=("gte_large_cqadupstack_webmasters")
 run_numbers=($(seq 1 10))
+
+# start the Docker daemon
+"C:\Program Files\Docker\Docker\Docker Desktop.exe" 
+sleep 30
 
 # start the containers that host the Milvus DB and wait them to start running
 docker-compose up -d
@@ -39,4 +44,4 @@ for embedding_dataset in "${embedding_datasets[@]}"; do
 done
 
 # store the containers that host the Milvus DB
-docker-compose dow
+docker-compose down
