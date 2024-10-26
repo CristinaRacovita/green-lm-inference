@@ -1,8 +1,10 @@
 import os
 import warnings
+import numpy as np
 import pandas as pd
 
 warnings.filterwarnings("ignore")
+
 
 def preprocess_measurements_data(measurements):
     # create a data-time column
@@ -49,9 +51,6 @@ def load_data(experiment_name):
             "Total DRAM Power [W]",
             "CPU Package Power [W]",
             "IA Cores Power [W]",
-            "GT Cores Power [W]",
-            "System Agent Power [W]",
-            "Rest-of-Chip Power [W]",
         ],
         low_memory=False,
     )[:-2]
@@ -96,7 +95,7 @@ def get_runs_measurements(measurements, run_timestamps, measurements_timestamps)
 
         measurements_per_run.append(measurements_current_run)
 
-    return durations_per_run, pd.concat(measurements_per_run).set_index("timestamp")
+    return durations_per_run, pd.concat(measurements_per_run).drop("timestamp", axis=1)
 
 
 def get_experiments_data(experiment_name):
@@ -120,5 +119,27 @@ def get_experiments_data(experiment_name):
             "durations_per_run": durations_per_run,
             "measurements_per_run": measurements_per_run,
         }
+
+    return experiments_data
+
+
+def compute_total_energy_per_run(experiments_data):
+# compute total energy consumption per run
+    for experiment_name in experiments_data.keys():
+        experiments_data[experiment_name]["measurements_per_run"] = (
+            experiments_data[experiment_name]["measurements_per_run"]
+            .groupby("run_index")
+            .apply(lambda x: np.sum(x * 0.1))
+            .drop("run_index", axis=1)
+            .rename(
+                {
+                    "CPU Package Power [W]": "CPU Package Energy [J]",
+                    "IA Cores Power [W]": "IA Cores Energy [J]",
+                    "Total DRAM Power [W]": "DRAM Energy [J]",
+                    "GPU Rail Powers (avg) [W]": "GPU Energy [J]",
+                },
+                axis=1,
+            )
+        )
 
     return experiments_data
