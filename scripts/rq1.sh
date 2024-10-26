@@ -24,6 +24,10 @@ embedding_datasets=("gte_base_arguana"
                     "gte_small_nfcorpus")
 run_numbers=($(seq 1 10))
 
+# start the containers that host the Milvus DB and wait them to start running
+docker-compose up -d
+sleep 30 
+
 # loop through each dataset
 for embedding_dataset in "${embedding_datasets[@]}"; do
     # repeat the experiment for each run number
@@ -33,3 +37,6 @@ for embedding_dataset in "${embedding_datasets[@]}"; do
         python ../vector_databases/db_operations.py "$operation_type" "milvus" "$embedding_dataset" "$run_number" "True" "$results_path"
     done
 done
+
+# store the containers that host the Milvus DB
+docker-compose dow
