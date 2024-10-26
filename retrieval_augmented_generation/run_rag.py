@@ -38,7 +38,7 @@ def setup_rag(db_name, dataset_name, embedding_model_name, language_model_name, 
     # initialize the embedding model
     device = get_device()
     embedding_model, tokenizer = get_model_and_tokenizer(embedding_model_name, device)
-    create_embedding(device, embedding_model_name, embedding_model, tokenizer, [["Test"]], 1, False)
+    create_embedding(device, embedding_model_name, embedding_model, tokenizer, [["Test"]], 1)
 
     # initialize the language model
     ollama.pull(language_model_name)
@@ -78,7 +78,7 @@ def ask_query(models, query_texts, vector_db_name, device, k):
     for query_text in query_texts:
         embedding_start_time = datetime.now()
         embedding = create_embedding(
-            device, embedding_model_name, embedding_model, tokenizer, [[query_text]], 1, False
+            device, embedding_model_name, embedding_model, tokenizer, [[query_text]], 1
         )
         embedding_end_time = datetime.now()
 
