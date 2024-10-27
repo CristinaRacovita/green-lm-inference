@@ -2,7 +2,7 @@ import os
 import warnings
 import numpy as np
 import pandas as pd
-from scipy.stats import f_oneway, kruskal
+from scipy.stats import wilcoxon, kruskal
 
 warnings.filterwarnings("ignore")
 
@@ -191,4 +191,25 @@ def compute_kruskal_wallis(
         data[data[independent_var_name] == independent_var_vals[2]][
             measurement_name
         ].to_list(),
+    )
+
+
+def get_ci_deviation(values):
+    return round(1.96 * values.std() / np.sqrt(len(values)), 2)
+
+def compute_wilcoxon(
+    data,
+    first_embedding_model,
+    second_embedding_model,
+    independent_var,
+    alternative="less",
+):
+    return wilcoxon(
+        x=data[data["embedding_model"] == first_embedding_model][
+            independent_var
+        ].to_list(),
+        y=data[data["embedding_model"] == second_embedding_model][
+            independent_var
+        ].to_list(),
+        alternative=alternative,
     )
