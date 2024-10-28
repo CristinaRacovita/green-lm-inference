@@ -2,7 +2,7 @@ echo "wait for the consumption to normalize"
 sleep 30
 
 echo "recording idle measurements..."
-sleep 510
+sleep 610
 python ../utils.py "idle state"
 
 # start the Docker daemon
@@ -10,7 +10,7 @@ python ../utils.py "idle state"
 sleep 60
 
 echo "recording measurements while Docker is running..."
-sleep 510
+sleep 610
 python ../utils.py "Docker running"
 
 # pull the language models
