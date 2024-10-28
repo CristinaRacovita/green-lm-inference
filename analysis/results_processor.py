@@ -10,9 +10,7 @@ warnings.filterwarnings("ignore")
 def preprocess_measurements_data(measurements):
     # create a data-time column
     date_time = zip(measurements["Date"].to_list(), measurements["Time"].to_list())
-    measurements["timestamp"] = [
-        date_val + " " + time_val for date_val, time_val in date_time
-    ]
+    measurements["timestamp"] = [date_val + " " + time_val for date_val, time_val in date_time]
     measurements["timestamp"] = pd.to_datetime(
         measurements["timestamp"], format="%d.%m.%Y %H:%M:%S.%f"
     )
@@ -36,9 +34,7 @@ def load_data(experiment_name, features):
     file_names = os.listdir(results_path)
 
     timestamp_file_paths = [
-        results_path + file_name
-        for file_name in file_names
-        if "timestamps" in file_name
+        results_path + file_name for file_name in file_names if "timestamps" in file_name
     ]
     measurement_file_path = results_path + "measurements.csv"
 
@@ -54,9 +50,7 @@ def load_data(experiment_name, features):
     for timestamp_file_path in timestamp_file_paths:
         run_timestamps = pd.read_csv(timestamp_file_path, index_col="run_number")
         timestamps_name = (
-            timestamp_file_path.split("/")[-1]
-            .replace("timestamps_", "")
-            .replace(".csv", "")
+            timestamp_file_path.split("/")[-1].replace("timestamps_", "").replace(".csv", "")
         )
         timestamps_data[timestamps_name] = run_timestamps
 
@@ -78,8 +72,7 @@ def get_runs_measurements(measurements, run_timestamps, measurements_timestamps)
         durations_per_run.append(duration_seconds + duration_microseconds / 1000000)
 
         considered_timestamps = measurements_timestamps[
-            (interval[0] <= measurements_timestamps)
-            & (measurements_timestamps <= interval[1])
+            (interval[0] <= measurements_timestamps) & (measurements_timestamps <= interval[1])
         ]
 
         measurements_current_run = measurements[
@@ -122,9 +115,10 @@ def compute_total_energy_per_run(experiments_data):
     for experiment_name in experiments_data.keys():
         experiments_data[experiment_name]["measurements_per_run"] = (
             experiments_data[experiment_name]["measurements_per_run"]
+            .reset_index()
             .groupby("run_index")
             .apply(lambda x: np.sum(x * 0.1))
-            .drop("run_index", axis=1)
+            .drop(["run_index", "index"], axis=1)
             .rename(
                 {
                     "CPU Package Power [W]": "CPU Package Energy [J]",
@@ -139,9 +133,7 @@ def compute_total_energy_per_run(experiments_data):
     return experiments_data
 
 
-def get_variation_runs_data(
-    runs_data, small, medium, large, independent_variable, variable_values
-):
+def get_variation_runs_data(runs_data, small, medium, large, independent_variable, variable_values):
     # combines measurements into one data frame, where observations are grouped
     runs_list = []
 
@@ -178,38 +170,35 @@ def prepare_plotting_data(data, independent_variable, cols_to_drop):
     return data
 
 
-def compute_kruskal_wallis(
-    data, independent_var_name, independent_var_vals, measurement_name
-):
-    return kruskal(
-        data[data[independent_var_name] == independent_var_vals[0]][
-            measurement_name
-        ].to_list(),
-        data[data[independent_var_name] == independent_var_vals[1]][
-            measurement_name
-        ].to_list(),
-        data[data[independent_var_name] == independent_var_vals[2]][
-            measurement_name
-        ].to_list(),
-    )
+def compute_kruskal_wallis(data, independent_var_name, independent_var_vals, measurement_name):
+    if len(independent_var_vals) == 3:
+        return kruskal(
+            data[data[independent_var_name] == independent_var_vals[0]][measurement_name].to_list(),
+            data[data[independent_var_name] == independent_var_vals[1]][measurement_name].to_list(),
+            data[data[independent_var_name] == independent_var_vals[2]][measurement_name].to_list(),
+        )
+
+    elif len(independent_var_vals) == 2:
+        return kruskal(
+            data[data[independent_var_name] == independent_var_vals[0]][measurement_name].to_list(),
+            data[data[independent_var_name] == independent_var_vals[1]][measurement_name].to_list(),
+        )
 
 
 def get_ci_deviation(values):
     return round(1.96 * values.std() / np.sqrt(len(values)), 2)
 
+
 def compute_wilcoxon(
     data,
-    first_embedding_model,
-    second_embedding_model,
+    first_value,
+    second_value,
+    measurement,
     independent_var,
     alternative="less",
 ):
     return wilcoxon(
-        x=data[data["embedding_model"] == first_embedding_model][
-            independent_var
-        ].to_list(),
-        y=data[data["embedding_model"] == second_embedding_model][
-            independent_var
-        ].to_list(),
+        x=data[data[independent_var] == first_value][measurement].to_list(),
+        y=data[data[independent_var] == second_value][measurement].to_list(),
         alternative=alternative,
     )
