@@ -71,8 +71,8 @@ def store_timestamp(timestamps_path, timestamp_name):
     __store_data(timestamps_path, new_timestamp)
 
 
-def store_rag_timestamps(timestamps_path, timestamps, run_index):
-    timestamps["run_number"] = [run_index] * len(timestamps["ask_model_end_time"])
+def store_rag_timestamps(timestamps_path, timestamps):
+    timestamps["run_number"] = [i + 1 for i in range(len(timestamps["ask_model_end_time"]))]
     new_experiment_data = pd.DataFrame(timestamps)
 
     __store_data(timestamps_path, new_experiment_data)
