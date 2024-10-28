@@ -1,4 +1,5 @@
 import os
+import datetime
 import warnings
 import numpy as np
 import pandas as pd
@@ -202,3 +203,54 @@ def compute_wilcoxon(
         y=data[data[independent_var] == second_value][measurement].to_list(),
         alternative=alternative,
     )
+
+
+def load_idle_recordings():
+    measurements = preprocess_measurements_data(
+        pd.read_csv(
+            "../results/idle_measurements/measurements.csv",
+            encoding="unicode_escape",
+            usecols=[
+                "Date",
+                "Time",
+                "Total DRAM Power [W]",
+                "IA Cores Power [W]",
+                "GPU Rail Powers (avg) [W]",
+            ],
+            low_memory=False,
+        )[:-2]
+    )
+
+    timestamps = pd.read_csv("../results/idle_measurements/timestamps.csv")
+    timestamps["timestamp_value"] = pd.to_datetime(timestamps["timestamp_value"]).to_list()
+
+    return measurements, timestamps
+
+
+def get_base_consumption(consumption_type):
+    measurements, timestamps = load_idle_recordings()
+
+    if consumption_type == "idle state":
+        row_index = 0
+    elif consumption_type == "Docker running":
+        row_index = 1
+
+    start_timestamp = timestamps.iloc[row_index, 1] - datetime.timedelta(seconds=505)
+    stop_timestamp = timestamps.iloc[row_index, 1] - datetime.timedelta(seconds=5)
+
+    average_consumption = (
+        measurements[
+            (measurements["timestamp"] >= start_timestamp)
+            & (measurements["timestamp"] <= stop_timestamp)
+        ][
+            [
+                "Total DRAM Power [W]",
+                "IA Cores Power [W]",
+                "GPU Rail Powers (avg) [W]",
+            ]
+        ]
+        .mean()
+        .to_dict()
+    )
+
+    return pd.DataFrame(average_consumption, index=[0])
