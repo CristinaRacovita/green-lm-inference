@@ -22,7 +22,6 @@ embedding_datasets=("gte_base_arguana"
                     "gte_small_arguana"
                     "gte_small_cqadupstack_webmasters"
                     "gte_small_nfcorpus")
-embedding_datasets=("gte_large_cqadupstack_webmasters")
 run_numbers=($(seq 1 10))
 
 # start the Docker daemon

@@ -1,6 +1,8 @@
 import os
+import sys
 import json
 import random
+from datetime import datetime
 
 import pandas as pd
 
@@ -57,6 +59,18 @@ def store_timestamps(timestamps_path, run_index, start_time, end_time):
     __store_data(timestamps_path, new_experiment_data)
 
 
+def store_timestamp(timestamps_path, timestamp_name):
+    new_timestamp = pd.DataFrame(
+        {
+            "timestamp_name": timestamp_name,
+            "timestamp_value": datetime.now(),
+        },
+        index=[0],
+    )
+
+    __store_data(timestamps_path, new_timestamp)
+
+
 def store_rag_timestamps(timestamps_path, timestamps, run_index):
     timestamps["run_number"] = [run_index] * len(timestamps["ask_model_end_time"])
     new_experiment_data = pd.DataFrame(timestamps)
@@ -78,7 +92,7 @@ def load_query_embeddings(file_path, queries_number):
 
 
 def load_query_text(file_path, queries_number):
-    random.seed(19)
+    random.seed(42)
     with open(file_path, "r") as json_file:
         queries = [json.loads(line)["text"] for line in json_file]
 
@@ -89,3 +103,15 @@ def load_query_text(file_path, queries_number):
     ]
 
     return selected_queries
+
+
+if __name__ == "__main__":
+    # parse arguments
+    if len(sys.argv) != 2:
+        print("Please provide the timestamp name.")
+        sys.exit(1)
+
+    timestamp_name = sys.argv[1]
+    timestamps_path = "../results/idle_measurements/timestamps.csv"
+
+    store_timestamp(timestamps_path, timestamp_name)

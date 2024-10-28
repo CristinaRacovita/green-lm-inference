@@ -11,7 +11,6 @@ from datetime import datetime
 sys.path.append("../")
 
 import torch
-from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
 from utils import store_timestamps
@@ -50,7 +49,7 @@ def average_pool(last_hidden_states, attention_mask):
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
 
-def create_embedding(device, model_name, model, tokenizer, data, batch_size, verbose=True):
+def create_embedding(device, model_name, model, tokenizer, data, batch_size):
     # set the maximum input length
     if "v1.5" in model_name:
         max_length = 8192
@@ -60,7 +59,7 @@ def create_embedding(device, model_name, model, tokenizer, data, batch_size, ver
     data_embeddings = []
 
     # get each batch of texts
-    for texts in tqdm(data, disable=not verbose):
+    for texts in data:
         # tokenize the input texts
         batch_dict = tokenizer(
             texts,
