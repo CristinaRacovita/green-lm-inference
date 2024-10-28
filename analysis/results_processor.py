@@ -278,7 +278,7 @@ def get_base_consumption(consumption_type):
     elif consumption_type == "Docker running":
         row_index = 1
 
-    start_timestamp = timestamps.iloc[row_index, 1] - datetime.timedelta(seconds=505)
+    start_timestamp = timestamps.iloc[row_index, 1] - datetime.timedelta(seconds=605)
     stop_timestamp = timestamps.iloc[row_index, 1] - datetime.timedelta(seconds=5)
 
     average_consumption = (
