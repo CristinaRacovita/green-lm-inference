@@ -9,7 +9,6 @@ from vector_databases.db_operations import get_client, get_prompt_docs
 from embeddings.create_embeddings import get_device, get_model_and_tokenizer, create_embedding
 
 import ollama
-from tqdm import tqdm
 
 DIRECTORY_PATH = "../data/datasets"
 MAX_RETRIEVED_TEXT_LENGTH = 2000
@@ -76,7 +75,7 @@ def ask_query(models, query_texts, vector_db_name, device, k):
     timestamps["prompt_length"] = []
     timestamps["answer_tokens_no"] = []
 
-    for query_text in tqdm(query_texts):
+    for query_text in query_texts:
         embedding_start_time = datetime.now()
         embedding = create_embedding(
             device, embedding_model_name, embedding_model, tokenizer, [[query_text]], 1, False

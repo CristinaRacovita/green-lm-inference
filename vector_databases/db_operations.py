@@ -1,5 +1,4 @@
 import sys
-from tqdm import tqdm
 from datetime import datetime
 
 sys.path.append("../")
@@ -118,7 +117,7 @@ def query_db(vector_db_name, dataset_name, number_of_queries=500, top_k_entries=
     else:
         get_k_most_similar = weaviate_get_k_most_similar
 
-    for query in tqdm(queries):
+    for query in queries:
         _ = get_k_most_similar(query, client, collection_name, top_k_entries)
 
     if vector_db_name == "milvus":

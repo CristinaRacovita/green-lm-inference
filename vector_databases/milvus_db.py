@@ -45,12 +45,17 @@ def create_collections(collection_names, milvus_client, json_data):
 
 
 def add_objects_for_collection(collection_name, input_data, client):
-    data = map(
-        lambda el: {"text": el["text"], "embedding": el["embedding"]},
-        input_data,
+    data = list(
+        map(
+            lambda el: {"text": el["text"], "embedding": el["embedding"]},
+            input_data,
+        )
     )
 
-    client.insert(collection_name=collection_name, partition_name=PARTITION_NAME, data=list(data))
+    for data_row in data:
+        client.insert(
+            collection_name=collection_name, partition_name=PARTITION_NAME, data=[data_row]
+        )
 
     client.release_collection(collection_name=collection_name)
 
