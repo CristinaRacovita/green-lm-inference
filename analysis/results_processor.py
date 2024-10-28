@@ -1,4 +1,5 @@
 import os
+import copy
 import datetime
 import warnings
 import numpy as np
@@ -37,6 +38,7 @@ def load_data(experiment_name, features):
     timestamp_file_paths = [
         results_path + file_name for file_name in file_names if "timestamps" in file_name
     ]
+
     measurement_file_path = results_path + "measurements.csv"
 
     measurements = pd.read_csv(
@@ -58,10 +60,51 @@ def load_data(experiment_name, features):
     return preprocess_measurements_data(measurements), timestamps_data
 
 
-def get_runs_measurements(measurements, run_timestamps, measurements_timestamps):
+def get_tokens_no(experiment_name):
+    # read the measurements recorded with HWiNFO and the stored timestamps
+    results_path = f"../results/{experiment_name}/"
+    file_names = os.listdir(results_path)
+
+    timestamp_file_paths = [
+        results_path + file_name for file_name in file_names if "timestamps" in file_name
+    ]
+
+    prompts_tokens_no = []
+    answers_tokens_no = []
+
+    for timestamp_file_path in timestamp_file_paths:
+        run_timestamps = pd.read_csv(timestamp_file_path, index_col="run_number")
+        prompts_tokens_no.extend(run_timestamps["prompt_length"].to_list())
+        answers_tokens_no.extend(run_timestamps["answer_tokens_no"].to_list())
+
+    return prompts_tokens_no, answers_tokens_no
+
+
+def aggregate_rag_data(experiment_name, runs_data):
+    retrieved_docs_variation_runs = []
+
+    for number_retrieved_docs_name, data in runs_data.items():
+        data_retrieved_docs_variation = copy.deepcopy(data["measurements_per_run"])
+        data_retrieved_docs_variation["duration [s]"] = data["durations_per_run"]
+        data_retrieved_docs_variation["number retrieved docs"] = int(
+            number_retrieved_docs_name.split("_")[-1]
+        )
+
+        retrieved_docs_variation_runs.append(data_retrieved_docs_variation)
+
+    retrieved_docs_variation_runs = pd.concat(retrieved_docs_variation_runs)
+
+    prompts_tokens_no, answers_tokens_no = get_tokens_no(experiment_name)
+    retrieved_docs_variation_runs["prompts_tokens_no"] = prompts_tokens_no
+    retrieved_docs_variation_runs["answers_tokens_no"] = answers_tokens_no
+
+    return retrieved_docs_variation_runs
+
+
+def get_runs_measurements(measurements, run_timestamps, measurements_timestamps, timestamp_columns):
     # compute for each experiment run the duration and get the associated measurements
-    start_timestamps = pd.to_datetime(run_timestamps["start_timestamp"]).to_list()
-    end_timestamps = pd.to_datetime(run_timestamps["end_timestamp"]).to_list()
+    start_timestamps = pd.to_datetime(run_timestamps[timestamp_columns[0]]).to_list()
+    end_timestamps = pd.to_datetime(run_timestamps[timestamp_columns[1]]).to_list()
 
     experiment_intervals = zip(start_timestamps, end_timestamps)
     measurements_per_run = []
@@ -86,7 +129,9 @@ def get_runs_measurements(measurements, run_timestamps, measurements_timestamps)
     return durations_per_run, pd.concat(measurements_per_run).drop("timestamp", axis=1)
 
 
-def get_experiments_data(experiment_name, features):
+def get_experiments_data(
+    experiment_name, features, timestamp_columns=["start_timestamp", "end_timestamp"]
+):
     """
     experiments_data with keys that are combinations of independent variables and the values are dictionaries, with 2 keys:
     - durations_per_run: contains a list of durations
@@ -100,7 +145,7 @@ def get_experiments_data(experiment_name, features):
 
     for timestamps_name, runs_timestamps in timestamps_data.items():
         durations_per_run, measurements_per_run = get_runs_measurements(
-            measurements, runs_timestamps, measurements_timestamps
+            measurements, runs_timestamps, measurements_timestamps, timestamp_columns
         )
 
         experiments_data[timestamps_name] = {
@@ -118,7 +163,7 @@ def compute_total_energy_per_run(experiments_data):
             experiments_data[experiment_name]["measurements_per_run"]
             .reset_index()
             .groupby("run_index")
-            .apply(lambda x: np.sum(x * 0.1))
+            .apply(lambda x: np.sum(x * 0.11))
             .drop(["run_index", "index"], axis=1)
             .rename(
                 {
@@ -172,18 +217,16 @@ def prepare_plotting_data(data, independent_variable, cols_to_drop):
 
 
 def compute_kruskal_wallis(data, independent_var_name, independent_var_vals, measurement_name):
-    if len(independent_var_vals) == 3:
-        return kruskal(
-            data[data[independent_var_name] == independent_var_vals[0]][measurement_name].to_list(),
-            data[data[independent_var_name] == independent_var_vals[1]][measurement_name].to_list(),
-            data[data[independent_var_name] == independent_var_vals[2]][measurement_name].to_list(),
+    measurements = []
+
+    for index in range(len(independent_var_vals)):
+        measurements.append(
+            data[data[independent_var_name] == independent_var_vals[index]][
+                measurement_name
+            ].to_list()
         )
 
-    elif len(independent_var_vals) == 2:
-        return kruskal(
-            data[data[independent_var_name] == independent_var_vals[0]][measurement_name].to_list(),
-            data[data[independent_var_name] == independent_var_vals[1]][measurement_name].to_list(),
-        )
+    return kruskal(*measurements)
 
 
 def get_ci_deviation(values):
