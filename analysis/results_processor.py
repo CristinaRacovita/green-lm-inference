@@ -101,7 +101,13 @@ def aggregate_rag_data(experiment_name, runs_data):
     return retrieved_docs_variation_runs
 
 
-def get_runs_measurements(measurements, run_timestamps, measurements_timestamps, timestamp_columns):
+def get_runs_measurements(
+    measurements,
+    run_timestamps,
+    measurements_timestamps,
+    timestamp_columns,
+    idle_state,
+):
     # compute for each experiment run the duration and get the associated measurements
     start_timestamps = pd.to_datetime(run_timestamps[timestamp_columns[0]]).to_list()
     end_timestamps = pd.to_datetime(run_timestamps[timestamp_columns[1]]).to_list()
@@ -122,15 +128,26 @@ def get_runs_measurements(measurements, run_timestamps, measurements_timestamps,
         measurements_current_run = measurements[
             measurements["timestamp"].isin(considered_timestamps)
         ]
-        measurements_current_run.loc[:, "run_index"] = run_index
 
+        columns = [col for col in measurements_current_run.columns if "[W]" in col]
+        idle_consumption = get_base_consumption(idle_state, columns)
+        idle_consumption_cols = list(idle_consumption.columns)
+        idle_consumption_vals = idle_consumption.to_numpy()[0]
+
+        for col, value in zip(idle_consumption_cols, idle_consumption_vals):
+            measurements_current_run[col] -= value
+
+        measurements_current_run.loc[:, "run_index"] = run_index
         measurements_per_run.append(measurements_current_run)
 
     return durations_per_run, pd.concat(measurements_per_run).drop("timestamp", axis=1)
 
 
 def get_experiments_data(
-    experiment_name, features, timestamp_columns=["start_timestamp", "end_timestamp"]
+    experiment_name,
+    features,
+    timestamp_columns=["start_timestamp", "end_timestamp"],
+    idle_state="idle state",
 ):
     """
     experiments_data with keys that are combinations of independent variables and the values are dictionaries, with 2 keys:
@@ -145,7 +162,7 @@ def get_experiments_data(
 
     for timestamps_name, runs_timestamps in timestamps_data.items():
         durations_per_run, measurements_per_run = get_runs_measurements(
-            measurements, runs_timestamps, measurements_timestamps, timestamp_columns
+            measurements, runs_timestamps, measurements_timestamps, timestamp_columns, idle_state
         )
 
         experiments_data[timestamps_name] = {
@@ -168,7 +185,7 @@ def compute_total_energy_per_run(experiments_data):
             .rename(
                 {
                     "CPU Package Power [W]": "CPU Package Energy [J]",
-                    "IA Cores Power [W]": "IA Cores Energy [J]",
+                    "IA Cores Power [W]": "CPU Cores Energy [J]",
                     "Total DRAM Power [W]": "DRAM Energy [J]",
                     "GPU Rail Powers (avg) [W]": "GPU Energy [J]",
                 },
@@ -270,7 +287,14 @@ def load_idle_recordings():
     return measurements, timestamps
 
 
-def get_base_consumption(consumption_type):
+def get_base_consumption(
+    consumption_type,
+    columns=[
+        "Total DRAM Power [W]",
+        "IA Cores Power [W]",
+        "GPU Rail Powers (avg) [W]",
+    ],
+):
     measurements, timestamps = load_idle_recordings()
 
     if consumption_type == "idle state":
@@ -285,13 +309,7 @@ def get_base_consumption(consumption_type):
         measurements[
             (measurements["timestamp"] >= start_timestamp)
             & (measurements["timestamp"] <= stop_timestamp)
-        ][
-            [
-                "Total DRAM Power [W]",
-                "IA Cores Power [W]",
-                "GPU Rail Powers (avg) [W]",
-            ]
-        ]
+        ][columns]
         .mean()
         .to_dict()
     )
