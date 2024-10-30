@@ -29,6 +29,9 @@ fi
 vector_databases=("qdrant" "milvus" "weaviate")
 run_numbers=($(seq 1 10))
 
+# activate the Python environment
+conda activate green_lm_inference
+
 # loop through each vector database
 for vector_database in "${vector_databases[@]}"; do
 

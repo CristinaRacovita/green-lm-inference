@@ -20,6 +20,9 @@ elif [ "$lm_name" = "hf.co/bartowski/Llama-3.2-1B-Instruct-GGUF:Q4_0" ]; then
     lm_short_name="llama"
 fi
 
+# activate the Python environment
+conda activate green_lm_inference
+
 # store the data
 echo "Store the embeddings in the database"
 python ../vector_databases/db_operations.py "index" "qdrant" "gte_base_nfcorpus" "1" "False" ""
