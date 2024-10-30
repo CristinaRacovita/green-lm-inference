@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# create the directories for storing the results and unzips the original results
+# create the directories for storing the results and unzip the original results
 tar -xf results.zip
 
 # install the Python packages in a new Conda environment
