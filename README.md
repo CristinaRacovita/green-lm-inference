@@ -1,6 +1,6 @@
 # Green Language Model Inference: Impact of Retrieval-Augmented Generation
 
-This repository contains the materials needed to replicate the experiments described in the study mentioned above. **The methodology was tested only on a machine with Windows 10.**.
+This repository contains the materials needed to replicate the experiments described in the study mentioned above. **The methodology was tested only on a machine with Windows 10**.
 
 ### Quick start
 
@@ -15,7 +15,7 @@ Before cloning the project and running the experiments, the following programs h
 
 #### Setup
 
-The setup consists of the following two steps:
+It consists of the following two steps:
 
 1. Clone the repository with `git clone https://github.com/CristinaRacovita/green-lm-inference.git`.
 2. Open a command line terminal in the project's folder and run: `./setup.sh`. This script will create the directories for storing the results, install the Python environment based on [environment.yml](environment.yml) and pull the language models using Ollama.
