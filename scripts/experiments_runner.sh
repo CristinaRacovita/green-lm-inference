@@ -9,7 +9,7 @@
 sleep 60
 
 # create corpus and query embeddings for each dataset with each embedding model
-./create_all_embeddings.sh`
+./create_all_embeddings.sh
 sleep 60
 
 # index and then query 10 times each dataset of embeddings using Milvus DB
