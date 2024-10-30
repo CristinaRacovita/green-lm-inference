@@ -20,7 +20,7 @@ It consists of the following two steps:
 1. Clone the repository with `git clone https://github.com/CristinaRacovita/green-lm-inference.git`.
 2. Open a command line terminal in the project's folder and run: `./setup.sh`. This script will create the directories for storing the results, install the Python environment based on [environment.yml](environment.yml) and pull the language models using Ollama.
 
-#### Running the experiments
+### Running the experiments
 
 For ease of reproducibility, we include the option of running all the experiments using a single script. To perform the experiments, follow the steps:
 
@@ -28,7 +28,7 @@ For ease of reproducibility, we include the option of running all the experiment
 2. Open a terminal in the directory [scripts](./scripts/) and run the command `./experiments_runner.sh`. Be patient because this will take several hours to run, depending on the used machine.
 3. Stop collecting the measurements, again using the UI of HWiNFO.
 
-#### Analyzing the results
+### Analyzing the results
 
 1. Copy the obtained measurements.csv in each sub-directory under results.
 2. Run each notebook from the [analysis](./analysis/) directory to obtain the results.
