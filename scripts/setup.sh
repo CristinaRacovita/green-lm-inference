@@ -1,14 +1,13 @@
-echo "recording idle measurements..."
-sleep 310
-python ../utils.py "idle state"
+#!/bin/bash
 
-# start the Docker daemon
-"C:\Program Files\Docker\Docker\Docker Desktop.exe" 
-sleep 30
+# create the directories for storing the results and unzip the original results
+tar -xf results.zip
 
-echo "recording measurements while Docker is running..."
-sleep 310
-python ../utils.py "Docker running"
+# install the Python packages in a new Conda environment
+conda env create -f ../environment.yml
+
+# make conda command available in the terminal
+conda init
 
 # pull the language models
 echo "pulling the language models..."

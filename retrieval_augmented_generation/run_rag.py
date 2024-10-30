@@ -148,7 +148,7 @@ def ask_query(models, query_texts, vector_db_name, device, k):
 
 if __name__ == "__main__":
     # parse arguments
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 7:
         print("Please provide: ", end="")
         print(
             "embedding and language, dataset, db, number of retrieved docs, run index, and results path."
@@ -160,8 +160,7 @@ if __name__ == "__main__":
     dataset_name = sys.argv[3]
     db_name = sys.argv[4]
     k = int(sys.argv[5])
-    run_index = int(sys.argv[6])
-    results_path = f"../results/{sys.argv[7]}"
+    results_path = f"../results/{sys.argv[6]}"
 
     collection_name = f"{embedding_model_name}_{dataset_name}".replace("-", "_") + "_1"
 
@@ -180,4 +179,4 @@ if __name__ == "__main__":
 
     lm_name = language_model_name.split("/")[-1].split(":")[0]
     timestamps_path = f"{results_path}/timestamps_{dataset_name}_{embedding_model_name}_{lm_name}_{db_name}_{k}.csv"
-    store_rag_timestamps(timestamps_path, timestamps, run_index)
+    store_rag_timestamps(timestamps_path, timestamps)

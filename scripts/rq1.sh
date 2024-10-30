@@ -32,6 +32,9 @@ sleep 30
 docker-compose up -d
 sleep 30 
 
+# activate the Python environment
+conda activate green_lm_inference
+
 # loop through each dataset
 for embedding_dataset in "${embedding_datasets[@]}"; do
     # repeat the experiment for each run number

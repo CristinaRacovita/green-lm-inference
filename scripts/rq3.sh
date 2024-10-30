@@ -6,6 +6,9 @@
 model_names=("gte-large" "gte-base" "gte-small")
 run_numbers=($(seq 1 10))
 
+# activate the Python environment
+conda activate green_lm_inference
+
 # loop through each model name
 for model in "${model_names[@]}"; do
     # repeat the experiment for each run number

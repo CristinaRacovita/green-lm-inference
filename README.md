@@ -1,30 +1,55 @@
 # Green Language Model Inference: Impact of Retrieval-Augmented Generation
 
-This repository contains the code needed to replicate the experiments described in the research mentioned above paper. **The methodology was tested only on a Windows machine**.
+This repository contains the materials needed to replicate the experiments described in the study mentioned above. **The methodology was tested only on a machine with Windows 10**.
 
-### Setup
-- Install weaviate locally: 
-    - `docker run -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.26.5`
-- Install qdrant locally:
-    - `docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant`
-- Install milvus locally: 
-    - https://milvus.io/docs/install_standalone-docker-compose.md - path: C:\Users\YourUser
-- Create the Conda environment that contains the required Python packages:
-    - `conda env create -f environment.yml`
+### Quick start
 
-### Research Questions
-To monitor the used resources, before running any experiment, the HWiNFO logging has to be started. The measurements have to be stored in the results directory under the subdirectory that corresponds to the research question of interest. Please use the same filenames as the ones from this repository.
+#### Prerequisites
 
-Before conducting the experiments, run `create_all_embeddings.sh`. This will create corpus and query embeddings for each dataset with each embedding model.
+Before cloning the project and running the experiments, the following programs have to be installed:
 
-#### RQ1
-Index or query 10 times each dataset of embeddings using Milvus DB: `rq1.sh index` and `rq1.sh query`.
+- Docker - https://docs.docker.com/desktop/install/windows-install/ needed to run the vector databases
+- Ollama - https://ollama.com/download used to run the language models
+- HWiNFO - https://www.hwinfo.com/download/ records the metrics of interest
+- Conda - https://www.anaconda.com/download/success to manage the Python environment
 
-#### RQ2
-Index or query 10 times the cqadupstack-webmasters dataset vectorized with gte-base using each of the three data bases: `rq2.sh index` and `rq2.sh query`.
+#### Setup
 
-#### RQ3
-Benchmark the embedding generation which creates embeddings for nfcorpus dataset 10 times with each embedding model: `rq3.sh`.
+It consists of the following two steps:
 
-#### RQ4 & RQ5
-Run the RAG system 10 times using the language model of choice, gte-base embedding model and various number of retrieved texts included from the arguana dataset in the prompt (1 up to 15): `rq4_rq5.sh qwen2.5:0.5b` or `rq4_rq5.sh gemma2:2b`.
+1. Clone the repository with `git clone https://github.com/CristinaRacovita/green-lm-inference.git`.
+2. Open a command line terminal in the project's folder and run: `./setup.sh`. This script will create the directories for storing the results, install the Python environment based on [environment.yml](environment.yml) and pull the language models using Ollama.
+
+#### Running the experiments
+
+For ease of reproducibility, we include the option of running all the experiments using a single script. To perform the experiments, follow the steps:
+
+1. Open HWiNFO and start collecting measurements every 100ms and store them in a file called **measurements.csv** in the directory results (this is created automatically after following the setup steps).
+2. Open a terminal in the directory [scripts](./scripts/) and run the command `./experiments_runner.sh`. Be patient because this will take several hours to run, depending on the used machine.
+3. Stop collecting the measurements, again using the UI of HWiNFO.
+
+#### Analyzing the results
+
+1. Copy the obtained measurements.csv in each sub-directory under results.
+2. Run each notebook from the [analysis](./analysis/) directory to obtain the results.
+
+**To replicate the methodology as closely as possible, we advise running each script called in [experiments_runner.sh](scripts/experiments_runner.sh) individually after restarting the machine. Do not forget to follow the methodology presented above for storing the associated HWiNFO measurements, mentioning that now the measurement.csv has to be stored in the corresponding sub-directory for each experiment under results.**.
+
+### Project structure
+
+The project directories are described below:
+
+```
+├───analysis - contains the notebooks needed to analyze the results
+│   └───figures - stores the plots produced during analysis
+├───data - contains the used datasets and a directory where the embeddings will be stored
+│   ├───datasets
+│   │   ├───arguana
+│   │   ├───cqadupstack-webmasters
+│   │   └───nfcorpus
+│   └───embeddings
+├───embeddings - code for generating the embeddings
+├───retrieval_augmented_generation - code for testing language models and implementing the RAG
+├───scripts - scripts needed to conduct experiments and Docker configuration file for Milvus DB
+└───vector_databases - code for implementing the index and query operations for each DB
+```
